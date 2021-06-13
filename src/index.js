@@ -52,7 +52,9 @@ class Game extends React.Component {
     super(props);
     this.state = {
       history: [{
-        squares:Array(9).fill(null),
+        squares: Array(9).fill(null),
+        // 配置した座標を記憶する配列を用意する
+        putPoints: Array(9).fill(null),
       }],
       stepNumber: 0,
       xIsNext: true,
@@ -63,13 +65,16 @@ class Game extends React.Component {
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
     const squares = current.squares.slice();
+    const putPoints = current.putPoints.slice();
     if (calculateWinner(squares) || squares[i]) {
       return;
     }
     squares[i] = this.state.xIsNext ? 'X' : 'O';
+    putPoints[history.length - 1] = '(' + i % 3 + ',' + (i - i % 3) / 3 + ')';
     this.setState({
       history: history.concat([{
         squares: squares,
+        putPoints: putPoints,
       }]),
       stepNumber: history.length,
       xIsNext: !this.state.xIsNext,
@@ -89,8 +94,13 @@ class Game extends React.Component {
     const current = history[this.state.stepNumber];
     const winner = calculateWinner(current.squares);
     const moves = history.map((step, move) => {
+      console.log('step: ');
+      console.log(step);
+      console.log('move: ');
+      console.log(move);
+      console.log('------------------------------');
       const desc = move ?
-      'Go to move #' + move :
+      'Go to move #' + move + ' ' + history[move].putPoints[move - 1] :
       'Go to game start';
       return (
         <li key={move}>
