@@ -55,3 +55,8 @@ ul {
   font-weight: bold;
   color: tomato;
 }
+
+.win {
+  color: green;
+  background-color: lightgreen;
+}
