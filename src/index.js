@@ -15,11 +15,7 @@ class Board extends React.Component {
     return(
       <Square
         value={this.props.squares[i]}
-        // onClick={() => this.props.onClick(i)}
-        onClick={() => {
-          console.log('from Board');
-          this.props.onClick(i);
-        }}
+        onClick={() => this.props.onClick(i)}
       />
     ); 
   }
@@ -53,12 +49,12 @@ class Game extends React.Component {
     this.state = {
       history: [{
         squares: Array(9).fill(null),
-        // 配置した座標を記憶する配列を用意する
-        putPoints: Array(9).fill(null),
       }],
       stepNumber: 0,
       xIsNext: true,
-      selectedList: null
+      selectedList: null,
+      isReversed: false,
+      putPoints: Array(9).fill(null),
     }
   }
 
@@ -66,17 +62,17 @@ class Game extends React.Component {
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
     const squares = current.squares.slice();
-    const putPoints = current.putPoints.slice();
+    const putPoints = this.state.putPoints.slice();
     if (calculateWinner(squares) || squares[i]) {
       return;
     }
     squares[i] = this.state.xIsNext ? 'X' : 'O';
-    putPoints[history.length - 1] = '(' + i % 3 + ',' + (i - i % 3) / 3 + ')';
+    putPoints[history.length] = '(' + i % 3 + ',' + (i - i % 3) / 3 + ')';
     this.setState({
       history: history.concat([{
         squares: squares,
-        putPoints: putPoints,
       }]),
+      putPoints: putPoints,
       stepNumber: history.length,
       xIsNext: !this.state.xIsNext,
       selectedList: null,
@@ -87,29 +83,31 @@ class Game extends React.Component {
     this.setState({
       stepNumber: step,
       xIsNext: (step % 2) === 0,
-      selectedList: step
+      selectedList: step,
     });
-    console.log('setState after ---------------------');
-    console.log(step);
-    console.log(this.state);
+  }
+
+  toggleListOrder() {
+    this.setState({
+      isReversed: !this.state.isReversed,
+    });
   }
 
   render() {
-    const history = this.state.history;
-    // const current = history[history.length - 1];
+    const isReversed = this.state.isReversed;
+    let history = this.state.history;
+    const putPoints = this.state.putPoints;
     const current = history[this.state.stepNumber];
-    console.log('render ---------------------');
-    console.log(this.state.stepNumber);
-    console.log(current);
     const winner = calculateWinner(current.squares);
+    if(isReversed) {
+      history = [...history].reverse();
+    }
     const moves = history.map((step, move) => {
-      console.log('step: ');
-      console.log(step);
-      console.log('move: ');
-      console.log(move);
-      console.log('------------------------------');
+      if(isReversed) {
+        move = history.length - move - 1;
+      }
       const desc = move ?
-      'Go to move #' + move + ' ' + history[move].putPoints[move - 1] :
+      'Go to move #' + move + ' ' + putPoints[move] :
       'Go to game start';
       return (
         <li key={move} className={this.state.selectedList === move ? 'selected' : ''}>
@@ -130,16 +128,13 @@ class Game extends React.Component {
         <div className="game-board">
           <Board 
             squares={current.squares}
-            // onClick={(i) => this.handleClick(i)}
-            onClick={(i) => {
-              console.log('from Game');
-              this.handleClick(i);
-            }}
+            onClick={(i) => this.handleClick(i)}
           />
         </div>
         <div className="game-info">
           <div>{status}</div>
-          <ol>{moves}</ol>
+          <button onClick={() => this.toggleListOrder()}>reverse: {isReversed ? 'desc' : 'asc'}</button>
+          <ol reversed={isReversed}>{moves}</ol>
         </div>
       </div>
     );
